@@ -1,356 +1,267 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Juan Camilo Salazar Franco | Portafolio de Ingeniería</title>
-    <meta name="description" content="Portafolio 3D interactivo con vista explosiva de un motor jet para Juan Camilo Salazar Franco.">
+    <title>Juan Camilo Salazar Franco | Portafolio Profesional</title>
+    <meta name="description" content="Portafolio profesional y dinámico de Juan Camilo Salazar Franco, futuro Ingeniero Mecánico.">
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Google Fonts: Orbitron & Inter -->
+    <!-- Google Fonts: Poppins -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     
-    <!-- GSAP for smooth animations -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
     <style>
         :root {
-            --primary-color: #63B3ED; /* Technical Cyan (Blueprint Ink) */
-            --bg-color: #1A202C;      /* Deep Blueprint Blue */
-            --panel-bg-color: rgba(10, 25, 47, 0.75); /* Darker blue for panels */
-            --text-color: #E2E8F0;    /* Soft Off-white */
-            --grid-color-1: #4A5568;
-            --grid-color-2: #2D3748;
+            --bg-dark: #0a192f;
+            --text-light: #ccd6f6;
+            --text-slate: #8892b0;
+            --accent-cyan: #64ffda;
         }
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            overflow: hidden;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
         }
-        #webgl-canvas {
+        #particle-canvas {
             position: fixed;
             top: 0;
             left: 0;
-            outline: none;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
         }
-        .font-display {
-            font-family: 'Orbitron', sans-serif;
+        .content-wrapper {
+            position: relative;
+            z-index: 1;
         }
-        .ui-element {
-            position: fixed;
-            z-index: 10;
+        .section-title {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            color: var(--text-light);
+            position: relative;
+            padding-bottom: 0.5rem;
         }
-        #info-panel {
-            position: fixed;
-            bottom: 2rem;
-            left: 50%;
-            transform: translateX(-50%) translateY(20px);
-            width: 90%;
-            max-width: 550px;
-            background: var(--panel-bg-color);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(99, 179, 237, 0.2);
-            border-radius: 12px;
-            padding: 1.5rem;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.5s ease, transform 0.5s ease, visibility 0.5s ease;
-            pointer-events: none;
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 50px;
+            height: 3px;
+            background-color: var(--accent-cyan);
         }
-        #info-panel.visible {
-            opacity: 1;
-            visibility: visible;
-            pointer-events: auto;
-            transform: translateX(-50%) translateY(0);
+        .btn-primary {
+            background-color: transparent;
+            border: 2px solid var(--accent-cyan);
+            color: var(--accent-cyan);
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
-        .btn {
-            background: var(--panel-bg-color);
-            backdrop-filter: blur(5px);
-            border: 1px solid rgba(99, 179, 237, 0.3);
-            color: var(--primary-color);
-            transition: all 0.2s ease;
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            font-size: 1rem;
+        .btn-primary:hover {
+            background-color: rgba(100, 255, 218, 0.1);
         }
-        .btn:hover {
-            background: rgba(99, 179, 237, 0.1);
-            border-color: var(--primary-color);
+        .glassmorphism-card {
+            background: rgba(10, 25, 47, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(100, 255, 218, 0.2);
+            border-radius: 0.5rem;
+            transition: transform 0.3s ease;
         }
-        @keyframes glow {
-            0% { text-shadow: 0 0 3px var(--primary-color); }
-            100% { text-shadow: 0 0 10px var(--primary-color); }
-        }
-        .glowing-text {
-            animation: glow 1.5s ease-in-out infinite alternate;
-        }
-        
-        /* Mobile Specific Styles */
-        @media (max-width: 768px) {
-            #navigation {
-                bottom: 1rem;
-                left: 1rem;
-                right: 1rem;
-                top: auto;
-                justify-content: center;
-                gap: 0.5rem;
-                flex-wrap: wrap;
-            }
-            .btn {
-                padding: 0.5rem 0.75rem;
-                font-size: 0.75rem;
-            }
-            #controls {
-                display: none;
-            }
-             #info-panel {
-                top: 50%;
-                bottom: auto;
-                left: 50%;
-                width: 90vw;
-                transform: translate(-50%, -50%) scale(0.95);
-            }
-            #info-panel.visible {
-                transform: translate(-50%, -50%) scale(1);
-            }
-            #header {
-                top: 1.5rem;
-                left: 1.5rem;
-            }
-             #header h1 { font-size: 1.5rem; }
-             #header h2 { font-size: 1rem; }
+        .glassmorphism-card:hover {
+            transform: translateY(-5px);
         }
     </style>
 </head>
-<body>
+<body class="antialiased">
 
-    <canvas id="webgl-canvas"></canvas>
+    <canvas id="particle-canvas"></canvas>
+    
+    <div class="content-wrapper">
+        <!-- Header -->
+        <header class="fixed w-full bg-slate-900/80 backdrop-blur-md z-50">
+            <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+                <a href="#" class="text-2xl font-bold" style="color: var(--accent-cyan);">JCSF</a>
+                <nav class="hidden md:flex space-x-8">
+                    <a href="#about" class="text-slate-300 hover:text-cyan-300 transition">Perfil</a>
+                    <a href="#skills" class="text-slate-300 hover:text-cyan-300 transition">Habilidades</a>
+                    <a href="#experience" class="text-slate-300 hover:text-cyan-300 transition">Trayectoria</a>
+                    <a href="#contact" class="text-slate-300 hover:text-cyan-300 transition">Contacto</a>
+                </nav>
+                <button id="mobile-menu-btn" class="md:hidden">
+                    <i data-lucide="menu" class="text-white"></i>
+                </button>
+            </div>
+            <!-- Mobile Menu -->
+            <div id="mobile-menu" class="hidden md:hidden">
+                <a href="#about" class="block py-3 px-6 text-center text-slate-300 hover:bg-slate-800">Perfil</a>
+                <a href="#skills" class="block py-3 px-6 text-center text-slate-300 hover:bg-slate-800">Habilidades</a>
+                <a href="#experience" class="block py-3 px-6 text-center text-slate-300 hover:bg-slate-800">Trayectoria</a>
+                <a href="#contact" class="block py-3 px-6 text-center text-slate-300 hover:bg-slate-800">Contacto</a>
+            </div>
+        </header>
 
-    <div id="header" class="ui-element top-8 left-8">
-        <h1 class="font-display text-3xl md:text-4xl text-white">J.C. SALAZAR</h1>
-        <h2 class="text-lg md:text-xl" style="color: var(--primary-color);">INGENIERO MECÁNICO</h2>
-    </div>
+        <main class="container mx-auto px-6 pt-24">
+            <!-- Hero Section -->
+            <section id="hero" class="flex flex-col justify-center min-h-screen">
+                <p class="text-lg" style="color: var(--accent-cyan);">Hola, mi nombre es</p>
+                <h1 class="text-4xl sm:text-6xl md:text-7xl font-bold mt-2">Juan Camilo Salazar Franco.</h1>
+                <h2 class="text-4xl sm:text-6xl md:text-7xl font-bold text-slate-400 mt-2">Ingeniero Mecánico en formación.</h2>
+                <p class="max-w-xl mt-6 text-slate-400">
+                    Un apasionado por el diseño, la simulación y la resolución de problemas complejos, enfocado en las ciencias térmicas y el análisis CAE para crear soluciones eficientes.
+                </p>
+                <a href="mailto:camilo.salazar1@utp.edu.co" class="btn-primary rounded-md py-3 px-8 text-lg font-semibold mt-10 w-fit">
+                    Ponte en contacto
+                </a>
+            </section>
 
-    <div id="navigation" class="ui-element top-8 right-8 flex flex-row items-end gap-3">
-        <button data-target="perfil" class="btn font-display">PERFIL</button>
-        <button data-target="habilidades" class="btn font-display">HABILIDADES</button>
-        <button data-target="trayectoria" class="btn font-display">TRAYECTORIA</button>
+            <!-- About Section -->
+            <section id="about" class="py-20 md:py-32">
+                <h2 class="section-title text-3xl mb-8">Sobre Mí</h2>
+                <div class="grid md:grid-cols-5 gap-12">
+                    <div class="md:col-span-3 text-slate-400 space-y-4">
+                        <p>
+                            Actualmente curso mis últimos semestres de Ingeniería Mecánica en la Universidad Tecnológica de Pereira. Mi enfoque académico se ha orientado hacia el diseño de máquinas y, con especial interés, hacia las ciencias térmicas. Disfruto profundamente el desafío de aplicar principios de termodinámica y transferencia de calor para optimizar sistemas energéticos.
+                        </p>
+                        <p>
+                            Mi experiencia como monitor académico y de investigación me ha permitido no solo consolidar mi conocimiento técnico, sino también desarrollar habilidades de comunicación y liderazgo. Estoy convencido de que la combinación de un análisis riguroso y herramientas computacionales como EES y Ansys es clave para la innovación en el sector.
+                        </p>
+                    </div>
+                    <div class="md:col-span-2">
+                         <div class="relative w-full max-w-sm mx-auto">
+                            <div class="absolute inset-0 bg-cyan-400 rounded-lg transform -rotate-3 transition hover:rotate-0"></div>
+                            <img src="https://placehold.co/400x400/0a192f/64ffda?text=JCSF" alt="Foto de Juan Camilo" class="relative rounded-lg w-full">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Skills Section -->
+            <section id="skills" class="py-20 md:py-32">
+                <h2 class="section-title text-3xl text-center mb-16">Habilidades Técnicas</h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                    <div class="py-2 text-slate-300">SolidWorks</div>
+                    <div class="py-2 text-slate-300">Ansys</div>
+                    <div class="py-2 text-slate-300">Python</div>
+                    <div class="py-2 text-slate-300">MATLAB</div>
+                    <div class="py-2 text-slate-300">EES</div>
+                    <div class="py-2 text-slate-300">Inventor</div>
+                    <div class="py-2 text-slate-300">AutoCAD</div>
+                    <div class="py-2 text-slate-300">LaTeX</div>
+                </div>
+            </section>
+            
+            <!-- Experience Section -->
+            <section id="experience" class="py-20 md:py-32">
+                 <h2 class="section-title text-3xl text-center mb-16">Trayectoria y Formación</h2>
+                 <div class="relative max-w-3xl mx-auto">
+                    <div class="absolute left-4 top-0 h-full w-0.5 bg-slate-700"></div>
+                    <div class="space-y-12">
+                        <div class="relative pl-12">
+                            <div class="absolute left-0 top-1.5 w-8 h-8 bg-slate-700 rounded-full flex items-center justify-center">
+                                <i data-lucide="graduation-cap" class="w-5 h-5 text-cyan-300"></i>
+                            </div>
+                            <p class="text-cyan-300">2019 - 2026</p>
+                            <h3 class="text-xl font-bold text-slate-200">Ingeniería Mecánica</h3>
+                            <p class="text-slate-400">Universidad Tecnológica de Pereira</p>
+                        </div>
+                         <div class="relative pl-12">
+                             <div class="absolute left-0 top-1.5 w-8 h-8 bg-slate-700 rounded-full flex items-center justify-center">
+                                <i data-lucide="briefcase" class="w-5 h-5 text-cyan-300"></i>
+                            </div>
+                            <p class="text-cyan-300">Jun 2025 - Presente</p>
+                            <h3 class="text-xl font-bold text-slate-200">Monitor Académico</h3>
+                            <p class="text-slate-400">CEDOCU, UTP</p>
+                        </div>
+                         <div class="relative pl-12">
+                            <div class="absolute left-0 top-1.5 w-8 h-8 bg-slate-700 rounded-full flex items-center justify-center">
+                                <i data-lucide="briefcase" class="w-5 h-5 text-cyan-300"></i>
+                            </div>
+                            <p class="text-cyan-300">Ene 2025 - Jun 2025</p>
+                            <h3 class="text-xl font-bold text-slate-200">Monitor de Cátedra</h3>
+                            <p class="text-slate-400">Teoría de Máquinas, UTP</p>
+                        </div>
+                    </div>
+                 </div>
+            </section>
+
+        </main>
+
+        <!-- Footer -->
+        <footer id="contact" class="text-center py-16">
+            <h3 class="text-2xl font-bold text-slate-300">Ponte en Contacto</h3>
+            <p class="max-w-md mx-auto my-4 text-slate-400">
+                Actualmente estoy buscando oportunidades de práctica. Si crees que mi perfil encaja, me encantaría saber de ti.
+            </p>
+            <a href="mailto:camilo.salazar1@utp.edu.co" class="btn-primary rounded-md py-3 px-8 text-lg font-semibold mt-4 inline-block">
+                Enviar un correo
+            </a>
+            <p class="text-sm text-slate-500 mt-16">&copy; 2025 Juan Camilo Salazar Franco</p>
+        </footer>
     </div>
     
-    <div id="controls" class="ui-element bottom-8 right-8">
-        <button id="explode-btn" class="btn font-display">VISTA EXPLOSIVA</button>
-    </div>
-
-    <div id="info-panel">
-        <div class="flex justify-between items-center mb-4">
-            <h3 id="info-title" class="font-display text-xl text-white"></h3>
-            <button id="close-panel-btn" class="text-white text-3xl">&times;</button>
-        </div>
-        <p id="info-content" class="text-sm text-gray-300"></p>
-    </div>
-    
-    <div id="loader" class="ui-element fixed inset-0 flex justify-center items-center" style="background-color: var(--bg-color);">
-         <p class="font-display text-xl glowing-text" style="color: var(--primary-color);">CARGANDO MODELO 3D...</p>
-    </div>
-
-    <!-- Three.js -->
+    <!-- Three.js for background animation -->
     <script type="importmap">
-        { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/" } }
+        { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js" } }
     </script>
     <script type="module">
         import * as THREE from 'three';
-        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        // Simplified particle animation script
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('particle-canvas'), alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
 
-        let scene, camera, renderer, controls, clock;
-        let jetEngine;
-        let isExploded = false;
-        const originalPositions = new Map();
-        
-        const cameraTargets = {
-            perfil: { pos: new THREE.Vector3(0, 1, 9), lookAt: new THREE.Vector3(0, 0, 0) },
-            habilidades: { pos: new THREE.Vector3(-7, 2, 5), lookAt: new THREE.Vector3(-2.5, 0, 0) },
-            trayectoria: { pos: new THREE.Vector3(6, -1, 6), lookAt: new THREE.Vector3(1, 0, 0) },
-        };
-        // CORRECCIÓN: Se añade EES a la lista de habilidades
-        const panelContent = {
-            perfil: { title: 'PERFIL PROFESIONAL', content: 'Futuro ingeniero mecánico con enfoque en diseño, simulación y optimización de sistemas. Mi objetivo es fusionar la teoría rigurosa con la innovación práctica para resolver problemas complejos en la industria.' },
-            habilidades: { title: 'HABILIDADES CLAVE', content: 'Dominio de software CAD/CAE como SolidWorks y Ansys para modelado 3D y análisis FEA/CFD. Programación en Python, MATLAB y EES para automatización y análisis de datos termodinámicos. Experiencia en simulación de sistemas de control.' },
-            trayectoria: { title: 'TRAYECTORIA ACADÉMICA', content: 'Monitor en áreas de Investigación, Teoría de Mecanismos y en el CEDOCU de la UTP. Experiencias que han fortalecido mis capacidades de liderazgo, enseñanza y colaboración en proyectos técnicos.' },
-        };
-
-        function init() {
-            clock = new THREE.Clock();
-            scene = new THREE.Scene();
-            scene.fog = new THREE.Fog(0x1A202C, 10, 25);
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.copy(cameraTargets.perfil.pos);
-
-            renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('webgl-canvas'), antialias: true, alpha: true });
-            renderer.setClearColor(0x000000, 0);
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(window.devicePixelRatio);
-            renderer.outputColorSpace = THREE.SRGBColorSpace;
-
-            controls = new OrbitControls(camera, renderer.domElement);
-            controls.enableDamping = true;
-            controls.target.copy(cameraTargets.perfil.lookAt);
-            controls.minDistance = 3;
-            controls.maxDistance = 15;
-
-            const grid = new THREE.GridHelper(50, 50, 0x4A5568, 0x2D3748);
-            scene.add(grid);
-            
-            const keyLight = new THREE.DirectionalLight(0x63B3ED, 1.5);
-            keyLight.position.set(5, 5, 5);
-            scene.add(keyLight);
-            const rimLight = new THREE.DirectionalLight(0xffffff, 0.5);
-            rimLight.position.set(-5, 0, -5);
-            scene.add(rimLight);
-
-            createJetEngine().then(engine => {
-                jetEngine = engine;
-                scene.add(jetEngine);
-                jetEngine.children.forEach(child => {
-                    originalPositions.set(child, child.position.clone());
-                });
-                document.getElementById('loader').style.display = 'none';
-            });
-
-            setupUI();
-            window.addEventListener('resize', onWindowResize);
-            animate();
+        const pointsGeometry = new THREE.BufferGeometry();
+        const count = 1000;
+        const positions = new Float32Array(count * 3);
+        for(let i = 0; i < count * 3; i++) {
+            positions[i] = (Math.random() - 0.5) * 15;
         }
+        pointsGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        const pointsMaterial = new THREE.PointsMaterial({ size: 0.02, color: 0x64ffda, transparent: true, opacity: 0.7 });
+        const particles = new THREE.Points(pointsGeometry, pointsMaterial);
+        scene.add(particles);
+        camera.position.z = 5;
 
-        async function createJetEngine() {
-            const group = new THREE.Group();
-            const darkMat = new THREE.MeshStandardMaterial({ color: 0x4A5568, metalness: 0.9, roughness: 0.4 });
-            const mainMat = new THREE.MeshStandardMaterial({ color: 0xCBD5E0, metalness: 0.8, roughness: 0.5 });
-
-            const fanGroup = new THREE.Group();
-            const hubGeo = new THREE.SphereGeometry(0.5, 32, 16);
-            const hub = new THREE.Mesh(hubGeo, darkMat);
-            fanGroup.add(hub);
-            const bladeCount = 22;
-            const bladeShape = new THREE.Shape();
-            bladeShape.moveTo(0, 0); bladeShape.lineTo(0.2, 0.1); bladeShape.lineTo(1.8, 0.3); bladeShape.lineTo(1.6, -0.1);
-            const extrudeSettings = { depth: 0.05, bevelEnabled: false };
-            const bladeGeo = new THREE.ExtrudeGeometry(bladeShape, extrudeSettings);
-            for (let i = 0; i < bladeCount; i++) {
-                const angle = (i / bladeCount) * Math.PI * 2;
-                const blade = new THREE.Mesh(bladeGeo, mainMat);
-                blade.position.set(0.4 * Math.cos(angle), 0.4 * Math.sin(angle), 0);
-                blade.rotation.z = angle + Math.PI / 2;
-                blade.rotation.y = -0.3;
-                fanGroup.add(blade);
-            }
-            fanGroup.position.x = -2.8;
-            fanGroup.name = 'fan_group';
-            group.add(fanGroup);
-            
-            const casingGeo = new THREE.CylinderGeometry(1.8, 1.3, 3, 64, 1, true);
-            const casing = new THREE.Mesh(casingGeo, darkMat);
-            casing.position.x = -1;
-            casing.rotation.z = Math.PI / 2;
-            casing.name = 'casing';
-            group.add(casing);
-
-            const compressorGroup = new THREE.Group();
-            for(let i = 0; i < 5; i++) {
-                const r = 1.2 - i * 0.15;
-                const stageGeo = new THREE.CylinderGeometry(r, r - 0.05, 0.2, 64);
-                const stage = new THREE.Mesh(stageGeo, mainMat);
-                stage.position.x = -1.8 + i * 0.4;
-                stage.rotation.z = Math.PI / 2;
-                compressorGroup.add(stage);
-            }
-            compressorGroup.name = 'compressor_group';
-            group.add(compressorGroup);
-            
-            const combustorGeo = new THREE.CylinderGeometry(0.8, 1.1, 3, 64);
-            const combustor = new THREE.Mesh(combustorGeo, darkMat);
-            combustor.position.x = 1.5;
-            combustor.rotation.z = Math.PI/2;
-            combustor.name = 'combustor';
-            group.add(combustor);
-            
-            return group;
-        }
-
-        function toggleExplodeView() {
-            isExploded = !isExploded;
-            
-            jetEngine.children.forEach(group => {
-                const originalPos = originalPositions.get(group);
-                if (!originalPos) return;
-
-                let targetPos;
-                if(isExploded) {
-                    const direction = originalPos.clone().normalize();
-                    let magnitude = 1;
-                    if (group.name === 'fan_group') magnitude = 3;
-                    if (group.name === 'compressor_group') magnitude = 1.5;
-                    if (group.name === 'combustor') magnitude = 1.8;
-                    targetPos = originalPos.clone().multiplyScalar(magnitude);
-                } else {
-                    targetPos = originalPos;
-                }
-                gsap.to(group.position, {
-                    duration: 2,
-                    x: targetPos.x, y: targetPos.y, z: targetPos.z,
-                    ease: 'power4.inOut'
-                });
-            });
-        }
-        
-        function setupUI() {
-            document.getElementById('explode-btn').addEventListener('click', toggleExplodeView);
-            
-            document.querySelectorAll('#navigation button').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const target = cameraTargets[btn.dataset.target];
-                    gsap.to(camera.position, { duration: 2, ...target.pos, ease: 'power4.inOut' });
-                    gsap.to(controls.target, { duration: 2, ...target.lookAt, ease: 'power4.inOut' });
-                    
-                    const content = panelContent[btn.dataset.target];
-                    document.getElementById('info-title').textContent = content.title;
-                    document.getElementById('info-content').textContent = content.content;
-                    document.getElementById('info-panel').classList.add('visible');
-                });
-            });
-            
-            document.getElementById('close-panel-btn').addEventListener('click', () => {
-                 document.getElementById('info-panel').classList.remove('visible');
-            });
-        }
-
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        }
+        document.addEventListener('mousemove', (event) => {
+            const mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+            const mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+            camera.position.x += (mouseX * 0.5 - camera.position.x) * 0.02;
+            camera.position.y += (mouseY * 0.5 - camera.position.y) * 0.02;
+            camera.lookAt(scene.position);
+        });
 
         function animate() {
             requestAnimationFrame(animate);
-            const delta = clock.getDelta();
-            
-            if (jetEngine) {
-                const fan = jetEngine.getObjectByName('fan_group');
-                if (fan) fan.rotation.x -= delta * 2;
-            }
-            
-            controls.update();
+            particles.rotation.y += 0.0005;
             renderer.render(scene, camera);
         }
-
-        init();
+        animate();
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
     </script>
+    <script>
+        // Lucide Icons
+        lucide.createIcons();
+        
+        // Mobile Menu
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+    </script>
+
 </body>
 </html>
 
